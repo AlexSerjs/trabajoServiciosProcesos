@@ -1,36 +1,52 @@
 package simulador_centro_computacion;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 public class SimuladorInvestigadores {
+
+    private static final int NUM_USUARIOS = 100;
+    private static final int NUM_NUCLEOS = 16;
+    private static final int RAM_TOTAL = 32;
+
+    private final Supercomputador sc;
+    private final List<Usuario> usuarios;
     public static void main(String[] args) {
-        int numUsuarios = 10; // You can set the number of users as needed
-        int núcleos = 16;     // Total number of CPU cores
-        int ram = 32;         // Total amount of RAM in GiB
-
-        Supercomputador supercomputador = new Supercomputador(numUsuarios, núcleos, ram);
-
-        // Create and start user threads
-        for (int i = 1; i <= numUsuarios; i++) {
-            Usuario usuario = new Usuario(i, supercomputador);
-            Thread userThread = new Thread(usuario);
-            userThread.start();
-        }
-
-        // Monitor the usage until all users have been served
-        long startTime = System.currentTimeMillis();
-        long maxRuntime = 60000; // Tiempo máximo en milisegundos (60 segundos en este ejemplo)
-
-        while (supercomputador.usuariosServidos() < numUsuarios && (System.currentTimeMillis() - startTime) < maxRuntime) {
-            System.out.println("Núcleos disponibles: " + supercomputador.núcleosDisponibles());
-            System.out.println("RAM disponible: " + supercomputador.ramDisponible());
-            System.out.println("Usuarios actuales: " + supercomputador.usuariosActuales());
-            System.out.println("Usuarios servidos: " + supercomputador.usuariosServidos());
-            System.out.println("-----------------------------------");
-
-            try {
-                Thread.sleep(1000); // Intervalo de monitoreo de 1 segundo
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        SimuladorInvestigadores simulador = new SimuladorInvestigadores();
+        simulador.iniciar();
     }
+
+    public SimuladorInvestigadores() {
+        this.sc = new Supercomputador(NUM_USUARIOS, NUM_NUCLEOS, RAM_TOTAL);
+        this.usuarios = new ArrayList<>();
+    }
+
+    public void iniciar() {
+        for (int i = 0; i < NUM_USUARIOS; i++) {
+            usuarios.add(new Usuario(i, sc));
+        }
+
+        for (Usuario usuario : usuarios) {
+            new Thread(usuario).start();
+        }
+
+        while (sc.usuariosServidos() < NUM_USUARIOS) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+               e.getMessage();
+            }
+            System.out.println(".".repeat(100));
+            System.out.println("Estado del supercomputador:");
+            System.out.println("Núcleos disponibles: " + sc.núcleosDisponibles());
+            System.out.println("RAM disponible: " + sc.ramDisponible());
+            System.out.println("Usuarios actuales: " + sc.usuariosActuales());
+            System.out.println("Usuarios servidos: " + sc.usuariosServidos());
+            System.out.println(".".repeat(100));
+        }
+
+        System.out.println("Fin de la simulación");
+    }
+
 }
